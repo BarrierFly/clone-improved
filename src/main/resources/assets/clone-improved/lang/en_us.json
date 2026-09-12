@@ -1,0 +1,20 @@
+{
+  "cloneimproved.mirror_invalid": "Invalid mirror coordinate: %s (must be a multiple of 0.5)",
+  "cloneimproved.mask_end_not_air": "Destination position %s is not air; clone cancelled",
+  "cloneimproved.undo.empty": "%s has nothing to undo",
+  "cloneimproved.redo.empty": "%s has nothing to redo",
+  "cloneimproved.undo.proposed": "Proposed UNDO:\nCommand: %s\nTime: %s\nRegions: %s\nAffected blocks: %s",
+  "cloneimproved.redo.proposed": "Proposed REDO:\nCommand: %s\nTime: %s\nRegions: %s\nAffected blocks: %s",
+  "cloneimproved.undo.proposed_by": "%s proposes undoing this operation of yours:\nCommand: %s\nTime: %s\nRegions: %s\nAffected blocks: %s",
+  "cloneimproved.redo.proposed_by": "%s proposes redoing this operation of yours:\nCommand: %s\nTime: %s\nRegions: %s\nAffected blocks: %s",
+  "cloneimproved.undo.modified_warning": "Warning: %s block(s) in the region were modified since then; confirming will overwrite those changes",
+  "cloneimproved.undo.pending_exists": "Another undo/redo proposal is already pending; resolve it first",
+  "cloneimproved.undo.stale": "That record is no longer the latest one; undo or redo the newer operations first",
+  "cloneimproved.undo.no_proposal": "There is no pending proposal to confirm or cancel",
+  "cloneimproved.undo.not_allowed": "Only the proposer or the record owner can confirm or cancel",
+  "cloneimproved.undo.confirmed": "Confirmed: undid %s's operation (%s blocks affected)",
+  "cloneimproved.redo.confirmed": "Confirmed: redid %s's operation (%s blocks affected)",
+  "cloneimproved.undo.cancelled": "Undo proposal cancelled",
+  "cloneimproved.redo.cancelled": "Redo proposal cancelled",
+  "cloneimproved.undo.one_player": "Specify exactly one player"
+}

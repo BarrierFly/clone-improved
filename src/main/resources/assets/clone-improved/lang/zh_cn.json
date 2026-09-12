@@ -1,0 +1,20 @@
+{
+  "cloneimproved.mirror_invalid": "镜像坐标无效：%s（必须为 0.5 的倍数）",
+  "cloneimproved.mask_end_not_air": "目标位置 %s 不是空气，已取消复制",
+  "cloneimproved.undo.empty": "%s 没有可撤销的操作",
+  "cloneimproved.redo.empty": "%s 没有可重做的操作",
+  "cloneimproved.undo.proposed": "提议撤销：\n命令：%s\n时间：%s\n区域：%s\n影响方块数：%s",
+  "cloneimproved.redo.proposed": "提议重做：\n命令：%s\n时间：%s\n区域：%s\n影响方块数：%s",
+  "cloneimproved.undo.proposed_by": "%s 提议撤销你的这次操作：\n命令：%s\n时间：%s\n区域：%s\n影响方块数：%s",
+  "cloneimproved.redo.proposed_by": "%s 提议重做你的这次操作：\n命令：%s\n时间：%s\n区域：%s\n影响方块数：%s",
+  "cloneimproved.undo.modified_warning": "警告：该区域自操作后已被修改 %s 个方块，确认将覆盖这些修改",
+  "cloneimproved.undo.pending_exists": "已有一个待确认的撤销/重做提案，请先处理",
+  "cloneimproved.undo.stale": "该记录已不是最新操作，请先撤销或重做更新的操作",
+  "cloneimproved.undo.no_proposal": "当前没有待确认或取消的提案",
+  "cloneimproved.undo.not_allowed": "只有提案者或记录所有者可以确认或取消",
+  "cloneimproved.undo.confirmed": "已撤销 %s 的操作（影响 %s 个方块）",
+  "cloneimproved.redo.confirmed": "已重做 %s 的操作（影响 %s 个方块）",
+  "cloneimproved.undo.cancelled": "已取消撤销提案",
+  "cloneimproved.redo.cancelled": "已取消重做提案",
+  "cloneimproved.undo.one_player": "一次只能指定一个玩家"
+}

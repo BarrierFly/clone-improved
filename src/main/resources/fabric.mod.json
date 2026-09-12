@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "${id}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "Supercharges /clone with composable move/rotate/mirror transforms, air masks and undo/redo. Server-side; vanilla clients work fine.",
+  "authors": [
+    "ZCode"
+  ],
+  "license": "WTFPL",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.cloneimproved.CloneImproved"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft}"
+  }
+}

@@ -1,0 +1,30 @@
+# Gradle / Fabric
+.gradle/
+build/
+out/
+classes/
+run/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+*.launch
+
+# OS
+*.DS_Store
+
+# JVM crash logs
+hs_err_*.log
+replay_*.log
+*.hprof
+*.jfr
+
+# Local build logs
+*.log

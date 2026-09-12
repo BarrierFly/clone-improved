@@ -1,0 +1,25 @@
+# Centralized per-version properties (Stonecutter 0.9 style).
+# Sections below override the top-level values for that version node.
+mod.id = "clone-improved"
+mod.name = "Clone Improved"
+mod.group = "dev.cloneimproved"
+mod.version = "0.1.0"
+
+deps.fabric_loader = "0.19.5"
+loomx.loom_version = "1.17-SNAPSHOT"
+
+["1.19.4"]
+mod.mc_compat = "1.19.4"
+deps.fabric_api = "0.87.2+1.19.4"
+
+["1.21.10"]
+mod.mc_compat = "1.21.10"
+deps.fabric_api = "0.138.4+1.21.10"
+
+["1.21.11"]
+mod.mc_compat = "1.21.11"
+deps.fabric_api = "0.141.6+1.21.11"
+
+["26.2.x"]
+mod.mc_compat = "~26.2"
+deps.fabric_api = "0.158.0+26.2"
