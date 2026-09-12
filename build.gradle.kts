@@ -67,7 +67,6 @@ tasks {
             register("id", "mod.id")
             register("name", "mod.name")
             register("minecraft", "mod.mc_compat")
-            register("loader", "deps.fabric_loader")
             // fabric.mod.json version carries the MC version, like the jar name
             val modVersion: String = sc.properties["mod.version"]
             inputs.property("mod.version", modVersion)
