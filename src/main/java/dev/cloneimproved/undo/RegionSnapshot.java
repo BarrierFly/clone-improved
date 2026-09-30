@@ -142,4 +142,11 @@ public final class RegionSnapshot {
         return dim + " [" + minX + " " + minY + " " + minZ
             + " -> " + (minX + sizeX - 1) + " " + (minY + sizeY - 1) + " " + (minZ + sizeZ - 1) + "]";
     }
+
+    /** True when every chunk this region touches is loaded in {@code level} (chunk lookup is Y-independent). */
+    public boolean isFullyLoaded(ServerLevel level) {
+        return level.hasChunksAt(
+            new BlockPos(minX, minY, minZ),
+            new BlockPos(minX + sizeX - 1, minY + sizeY - 1, minZ + sizeZ - 1));
+    }
 }

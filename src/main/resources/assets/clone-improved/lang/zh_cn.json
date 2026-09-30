@@ -9,6 +9,7 @@
   "cloneimproved.redo.proposed_by": "%s 提议重做你的这次操作：\n命令：%s\n时间：%s\n区域：%s\n影响方块数：%s",
   "cloneimproved.undo.modified_warning": "警告：该区域自操作后已被修改 %s 个方块，确认将覆盖这些修改",
   "cloneimproved.undo.pending_exists": "已有一个待确认的撤销/重做提案，请先处理",
+  "cloneimproved.undo.not_loaded": "受影响区域中有未加载的区块，请靠近该区域（或先加载它）后再试",
   "cloneimproved.undo.stale": "该记录已不是最新操作，请先撤销或重做更新的操作",
   "cloneimproved.undo.no_proposal": "当前没有待确认或取消的提案",
   "cloneimproved.undo.not_allowed": "只有提案者或记录所有者可以确认或取消",

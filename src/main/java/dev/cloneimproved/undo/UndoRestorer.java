@@ -32,6 +32,7 @@ public final class UndoRestorer {
             int flags = MultiversionHelpers.writeFlags(record.strict());
             List<BlockPos> changed = new ArrayList<>();
             List<BlockState> previous = new ArrayList<>();
+            List<BlockState> placed = new ArrayList<>();
             for (var entry : target.long2ObjectEntrySet()) {
                 BlockPos pos = BlockPos.of(entry.getLongKey());
                 BlockSnapshot snapshot = entry.getValue();
@@ -49,10 +50,11 @@ public final class UndoRestorer {
                 if (!record.strict()) {
                     changed.add(pos);
                     previous.add(old);
+                    placed.add(snapshot.state());
                 }
             }
             for (int i = 0; i < changed.size(); i++) {
-                MultiversionHelpers.updateNeighbours(level, changed.get(i), previous.get(i));
+                MultiversionHelpers.updateNeighbours(level, changed.get(i), placed.get(i), previous.get(i));
             }
         }
     }

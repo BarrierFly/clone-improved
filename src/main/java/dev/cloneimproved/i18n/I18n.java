@@ -86,7 +86,11 @@ public final class I18n {
         Map<String, String> lang = LANGS.get(locale);
         String template = lang == null ? null : lang.get(key);
         if (template == null) {
-            template = LANGS.get("en_us").getOrDefault(key, key);
+            Map<String, String> english = LANGS.get("en_us");
+            template = english == null ? null : english.get(key);
+        }
+        if (template == null) {
+            return key;
         }
         try {
             return String.format(template, args);

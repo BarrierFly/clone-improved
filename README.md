@@ -37,6 +37,9 @@ transform ::= move | rotate (cw|ccw|reverse) | mirror (x|z) <coordinate>
   rotations/mirrors are intentionally not supported.
 - Direction-sensitive blocks (stairs, rails, doors, logs,…) are rotated/mirrored correctly.
 - The vanilla path also composes: `/clone <begin> <end> <dest> masked move rotate cw`.
+- `force` may trail any chain end — including the vanilla-mode `move`, so
+  `/clone <begin> <end> <dest> replace move force` (move + allow overlap) is accepted even
+  though vanilla cannot combine the two.
 
 Examples:
 
@@ -83,6 +86,10 @@ including masked-out air.
 - After undoing you can keep undoing older records; `/clone redo` reverses the last undo with
   the same proposal flow. A new `/clone` clears your redo stack.
 - Only one proposal can be pending at a time; records are kept until the server stops.
+- Undo/redo refuses to run while a recorded region spans unloaded chunks (nothing is modified
+  in that case) — move closer to the area, or load it, and try again.
+- A clone that fails with `clone.failed` but still changed the world (e.g. a `move` whose
+  source was already cleared) keeps its undo record, so even that failure can be reverted.
 
 ## Compatibility
 

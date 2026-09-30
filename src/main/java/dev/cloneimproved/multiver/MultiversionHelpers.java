@@ -76,10 +76,14 @@ public final class MultiversionHelpers {
         //?}
     }
 
-    /** §7.3 — the vanilla clone "neighbours updated" pass (lives on ServerLevel in 1.21.2+). */
-    public static void updateNeighbours(ServerLevel level, BlockPos pos, BlockState previousState) {
+    /**
+     * §7.3 — the vanilla clone "neighbours updated" pass (lives on ServerLevel in 1.21.2+).
+     * Vanilla notifies neighbours with the block it just placed on 1.19.4, and with the
+     * previous state there from 1.21.2 on — callers pass both so every version keeps parity.
+     */
+    public static void updateNeighbours(ServerLevel level, BlockPos pos, BlockState placedState, BlockState previousState) {
         //? if <1.21.2 {
-        level.blockUpdated(pos, previousState.getBlock());
+        level.blockUpdated(pos, placedState.getBlock());
         //?} else {
         level.updateNeighboursOnBlockSet(pos, previousState);
         //?}
@@ -131,13 +135,16 @@ public final class MultiversionHelpers {
         //?}
     }
 
-    /** Prepares one destination position with a BARRIER before the real blocks are written (vanilla parity). */
-    public static void placeBarrier(ServerLevel level, BlockPos pos, boolean strict) {
+    /**
+     * Prepares one destination position with a BARRIER before the real blocks are written
+     * (vanilla parity). Returns whether the BARRIER actually changed the block.
+     */
+    public static boolean placeBarrier(ServerLevel level, BlockPos pos, boolean strict) {
         //? if <1.21.2 {
         Clearable.tryClear(level.getBlockEntity(pos));
-        level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), 2);
+        return level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), 2);
         //?} else {
-        level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), barrierFlags(strict));
+        return level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), barrierFlags(strict));
         //?}
     }
 

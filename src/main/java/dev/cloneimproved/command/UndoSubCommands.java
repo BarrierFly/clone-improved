@@ -93,6 +93,7 @@ public final class UndoSubCommands {
         if (record == null) {
             throw Errors.simple(source, "cloneimproved." + (kind == UndoKind.UNDO ? "undo" : "redo") + ".empty", owner.name());
         }
+        ensureRegionsLoaded(source, record);
         int modifiedBlocks = countDiverged(source.getServer(), record, kind);
         Identity proposer = selfIdentity(source);
         UndoHistoryManager.PendingProposal proposal = new UndoHistoryManager.PendingProposal(
@@ -119,6 +120,7 @@ public final class UndoSubCommands {
         if (UndoHistoryManager.peek(proposal.owner(), kind) != proposal.record()) {
             throw Errors.simple(source, "cloneimproved.undo.stale");
         }
+        ensureRegionsLoaded(source, proposal.record());
         UndoRestorer.restore(source.getServer(), proposal.record(), kind);
         UndoHistoryManager.transfer(proposal.owner(), kind);
         UndoHistoryManager.setPending(null);
@@ -152,6 +154,20 @@ public final class UndoSubCommands {
     private static ServerPlayer otherParty(CommandSourceStack source, UndoHistoryManager.PendingProposal proposal, UUID actor) {
         UUID otherUuid = actor.equals(proposal.proposer()) ? proposal.owner() : proposal.proposer();
         return source.getServer().getPlayerList().getPlayer(otherUuid);
+    }
+
+    /**
+     * Refuses undo/redo while a recorded region spans unloaded chunks — reading or writing them
+     * would force-load on the server thread. Checked at proposal time and again at confirm time
+     * (chunks can unload in between).
+     */
+    private static void ensureRegionsLoaded(CommandSourceStack source, CloneRecord record) throws CommandSyntaxException {
+        for (RegionSnapshot region : record.regions()) {
+            net.minecraft.server.level.ServerLevel level = source.getServer().getLevel(region.dimension());
+            if (level != null && !region.isFullyLoaded(level)) {
+                throw Errors.simple(source, "cloneimproved.undo.not_loaded");
+            }
+        }
     }
 
     /** Counts positions where the world no longer matches the snapshot an undo/redo would write. */

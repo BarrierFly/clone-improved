@@ -151,12 +151,16 @@ public final class CloneExecutor {
         regions.add(destSnapshot);
 
         int flags = MultiversionHelpers.writeFlags(request.strict());
+        boolean sourceCleared = false;
         if (moveSource) {
             for (BlockPos pos : clearList) {
                 MultiversionHelpers.clearSourcePos(fromDim, pos, request.strict());
             }
+            int airFlags = MultiversionHelpers.airFlags(request.strict());
             for (BlockPos pos : clearList) {
-                fromDim.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), MultiversionHelpers.airFlags(request.strict()));
+                if (fromDim.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), airFlags)) {
+                    sourceCleared = true;
+                }
             }
         }
 
@@ -166,8 +170,11 @@ public final class CloneExecutor {
         all.addAll(other);
         List<Write> reverse = Lists.reverse(all);
 
+        int barrierChanges = 0;
         for (Write write : reverse) {
-            MultiversionHelpers.placeBarrier(toDim, write.pos(), request.strict());
+            if (MultiversionHelpers.placeBarrier(toDim, write.pos(), request.strict())) {
+                barrierChanges++;
+            }
         }
 
         int count = 0;
@@ -187,7 +194,7 @@ public final class CloneExecutor {
 
         if (!request.strict()) {
             for (Write write : reverse) {
-                MultiversionHelpers.updateNeighbours(toDim, write.pos(), write.previousStateAtDestination());
+                MultiversionHelpers.updateNeighbours(toDim, write.pos(), write.state(), write.previousStateAtDestination());
             }
         }
 
@@ -199,6 +206,16 @@ public final class CloneExecutor {
         }
 
         if (count == 0) {
+            // Vanilla reports failure after the writes; if the run still changed the world
+            // (source cleared for move, or the barrier pass replaced blocks), keep an undo
+            // record so the change stays reversible despite the error.
+            if (barrierChanges > 0 || sourceCleared) {
+                destSnapshot.captureAfter(toDim);
+                if (moveSource) {
+                    regions.get(0).captureAfter(fromDim);
+                }
+                recordUndo(ctx, request, 0, regions);
+            }
             throw ERROR_FAILED.create();
         }
 
@@ -206,7 +223,16 @@ public final class CloneExecutor {
         if (moveSource) {
             regions.get(0).captureAfter(fromDim);
         }
+        recordUndo(ctx, request, count, regions);
 
+        MultiversionHelpers.sendSuccess(source, Component.translatable("commands.clone.success", count), true);
+        return count;
+    }
+
+    /** Persists the before/after snapshots as the executor's newest undo record. */
+    private static void recordUndo(CommandContext<CommandSourceStack> ctx, CloneRequest request, int affected,
+                                   List<RegionSnapshot> regions) {
+        CommandSourceStack source = ctx.getSource();
         UUID executorId;
         String executorName;
         if (source.getEntity() instanceof ServerPlayer player) {
@@ -217,10 +243,7 @@ public final class CloneExecutor {
             executorName = "Server";
         }
         UndoHistoryManager.recordClone(executorId, new CloneRecord(
-            executorId, executorName, Instant.now(), ctx.getInput(), count, request.strict(), List.copyOf(regions)));
-
-        MultiversionHelpers.sendSuccess(source, Component.translatable("commands.clone.success", count), true);
-        return count;
+            executorId, executorName, Instant.now(), ctx.getInput(), affected, request.strict(), List.copyOf(regions)));
     }
 
     /**
