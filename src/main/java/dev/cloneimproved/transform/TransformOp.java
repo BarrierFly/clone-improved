@@ -1,5 +1,7 @@
 package dev.cloneimproved.transform;
 
+import java.util.Objects;
+
 /**
  * One step of a {@code /clone} transform chain: {@code move}, {@code rotate (cw|ccw|reverse)}
  * or {@code mirror (x|z) <coordinate>}.
@@ -16,8 +18,11 @@ public sealed interface TransformOp permits TransformOp.Move, TransformOp.Rotate
         public static final Move INSTANCE = new Move();
     }
 
-    /** Rotation around the vertical axis, pivoting at the current lower-NW corner. */
+    /** Rotation around the vertical axis; the region's lower-NW anchor stays fixed while the content rotates within it (X/Z dims swap). */
     record Rotate(RotationDir dir) implements TransformOp {
+        public Rotate {
+            Objects.requireNonNull(dir, "dir");
+        }
     }
 
     /**

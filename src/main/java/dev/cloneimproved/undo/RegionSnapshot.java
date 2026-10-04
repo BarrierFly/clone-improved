@@ -47,6 +47,13 @@ public final class RegionSnapshot {
 
     /** Captures the region's state as the "after" image; call once, after all writes finished. */
     public void captureAfter(ServerLevel level) {
+        if (!level.dimension().equals(dimension)) {
+            throw new IllegalArgumentException(
+                "Level " + level.dimension() + " does not match snapshot dimension " + dimension);
+        }
+        if (after != null) {
+            throw new IllegalStateException("after image already captured for " + describe());
+        }
         Long2ObjectOpenHashMap<BlockSnapshot> map = new Long2ObjectOpenHashMap<>();
         captureInto(level, minX, minY, minZ, sizeX, sizeY, sizeZ, map);
         this.after = map;

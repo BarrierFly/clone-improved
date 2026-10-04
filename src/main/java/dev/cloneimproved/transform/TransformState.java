@@ -27,7 +27,13 @@ public final class TransformState {
                     case REVERSE -> cur.rotate(Rotation.CLOCKWISE_180);
                 };
             } else if (op instanceof TransformOp.Mirror mirror) {
+                // Only the axis matters here: the plane coordinate affects the placement, which
+                // PlacementMapper owns. Callers must have validated 2c ∈ ℤ before building the spec.
                 cur = cur.mirror(mirror.xAxis() ? Mirror.FRONT_BACK : Mirror.LEFT_RIGHT);
+            } else if (op instanceof TransformOp.Move) {
+                // No state change: Move only re-anchors the placement (see PlacementMapper).
+            } else {
+                throw new IllegalArgumentException("Unsupported transform op: " + op);
             }
         }
         return cur;

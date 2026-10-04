@@ -71,7 +71,8 @@ tasks {
             val modVersion: String = sc.properties["mod.version"]
             inputs.property("mod.version", modVersion)
             inputs.property("mc.version", sc.current.version)
-            set("version", "$modVersion+${sc.current.version}")
+            // Reuse the project version so the metadata can never drift from the jar name.
+            set("version", project.version.toString())
         }
 
         filesMatching("fabric.mod.json") { expand(props) }

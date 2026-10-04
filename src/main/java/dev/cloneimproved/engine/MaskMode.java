@@ -1,5 +1,7 @@
 package dev.cloneimproved.engine;
 
+import java.util.List;
+
 /**
  * The three mask literals that replace vanilla {@code masked}, plus {@code NONE} for
  * {@code replace}-style copying (design doc §5).
@@ -21,15 +23,16 @@ public enum MaskMode {
     END,
     BOTH;
 
-    public static final MaskMode[] MASKS = {BEGIN, END, BOTH};
+    /** The three mask literals, in registration order; immutable so the command tree cannot be reshaped externally. */
+    public static final List<MaskMode> MASKS = List.of(BEGIN, END, BOTH);
 
-    /** Brigadier literal; {@link #NONE} has no literal (default copy). */
+    /** Brigadier literal; only the three mask modes reach the command tree ({@link #NONE} has none). */
     public String token() {
         return switch (this) {
             case BEGIN -> "mask_begin";
             case END -> "mask_end";
             case BOTH -> "mask_both";
-            case NONE -> "replace";
+            case NONE -> throw new IllegalStateException("NONE has no command literal");
         };
     }
 
@@ -38,8 +41,8 @@ public enum MaskMode {
         return this == BEGIN || this == BOTH;
     }
 
-    /** Whether the destination position receiving {@code sourceNonAir} must currently be air. */
-    public boolean requiresAirAtDestination(boolean sourceNonAir) {
-        return this == END || (this == BOTH && sourceNonAir);
+    /** Whether the destination position must currently be air (END/BOTH reject the command otherwise). */
+    public boolean requiresAirAtDestination() {
+        return this == END || this == BOTH;
     }
 }

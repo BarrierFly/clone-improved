@@ -18,8 +18,6 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 //?}
 
-import java.util.Deque;
-
 /**
  * Every Minecraft-version divergence lives here (design doc §7). All other code is shared across
  * the four target versions; the stonecutter guards below are the only {@code //?} comments in the
@@ -167,8 +165,9 @@ public final class MultiversionHelpers {
     }
 
     /**
-     * Client-reported language for server-side message formatting (design doc §9.1). The language
-     * is only synced from 1.20.2 on; 1.19.4 never receives it, so those players get English.
+     * Client-reported language for server-side message formatting (design doc §9.1). The synced
+     * client language is only read on 1.21.10+ (the guard below); 1.19.4–1.21.11 players get
+     * English, matching the {@code I18n} fallback.
      */
     public static String playerLanguage(ServerPlayer player) {
         //? if >=1.21.10 {

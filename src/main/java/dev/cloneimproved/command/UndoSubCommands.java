@@ -45,13 +45,13 @@ public final class UndoSubCommands {
     private static LiteralArgumentBuilder<CommandSourceStack> tree(String name, UndoKind kind) {
         return Commands.literal(name)
             .executes(ctx -> propose(ctx, kind, selfIdentity(ctx.getSource())))
-            .then(Commands.literal("confirm").executes(ctx -> confirm(ctx, kind)))
-            .then(Commands.literal("cancel").executes(ctx -> cancel(ctx, kind)))
+            .then(Commands.literal("confirm").executes(ctx -> confirm(ctx, kind, null)))
+            .then(Commands.literal("cancel").executes(ctx -> cancel(ctx, kind, null)))
             .then(
                 Commands.argument("target", GameProfileArgument.gameProfile())
                     .executes(ctx -> propose(ctx, kind, resolveTarget(ctx)))
-                    .then(Commands.literal("confirm").executes(ctx -> confirm(ctx, kind)))
-                    .then(Commands.literal("cancel").executes(ctx -> cancel(ctx, kind)))
+                    .then(Commands.literal("confirm").executes(ctx -> confirm(ctx, kind, resolveTarget(ctx))))
+                    .then(Commands.literal("cancel").executes(ctx -> cancel(ctx, kind, resolveTarget(ctx))))
             );
     }
 
@@ -97,7 +97,7 @@ public final class UndoSubCommands {
         int modifiedBlocks = countDiverged(source.getServer(), record, kind);
         Identity proposer = selfIdentity(source);
         UndoHistoryManager.PendingProposal proposal = new UndoHistoryManager.PendingProposal(
-            proposer.uuid(), proposer.name(), owner.uuid(), owner.name(), record, kind);
+            proposer.uuid(), proposer.name(), owner.uuid(), owner.name(), record, kind, modifiedBlocks);
         UndoHistoryManager.setPending(proposal);
         MultiversionHelpers.sendSuccess(source, UndoMessages.proposal(source, proposal, modifiedBlocks), false);
         ServerPlayer ownerPlayer = source.getServer().getPlayerList().getPlayer(owner.uuid());
@@ -107,11 +107,14 @@ public final class UndoSubCommands {
         return 1;
     }
 
-    private static int confirm(CommandContext<CommandSourceStack> ctx, UndoKind kind) throws CommandSyntaxException {
+    private static int confirm(CommandContext<CommandSourceStack> ctx, UndoKind kind, Identity target) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
         UndoHistoryManager.PendingProposal proposal = UndoHistoryManager.pending();
         if (proposal == null || proposal.kind() != kind) {
             throw Errors.simple(source, "cloneimproved.undo.no_proposal");
+        }
+        if (target != null && !target.uuid().equals(proposal.owner())) {
+            throw Errors.simple(source, "cloneimproved.undo.target_mismatch", target.name());
         }
         UUID actor = selfIdentity(source).uuid();
         if (!actor.equals(proposal.proposer()) && !actor.equals(proposal.owner())) {
@@ -121,6 +124,12 @@ public final class UndoSubCommands {
             throw Errors.simple(source, "cloneimproved.undo.stale");
         }
         ensureRegionsLoaded(source, proposal.record());
+        // The divergence count was shown at proposal time; anything written since then must not be
+        // silently overwritten beyond what the confirmer agreed to.
+        int nowDiverged = countDiverged(source.getServer(), proposal.record(), kind);
+        if (nowDiverged > proposal.modifiedBlocks()) {
+            throw Errors.simple(source, "cloneimproved.undo.world_changed", nowDiverged);
+        }
         UndoRestorer.restore(source.getServer(), proposal.record(), kind);
         UndoHistoryManager.transfer(proposal.owner(), kind);
         UndoHistoryManager.setPending(null);
@@ -132,11 +141,14 @@ public final class UndoSubCommands {
         return 1;
     }
 
-    private static int cancel(CommandContext<CommandSourceStack> ctx, UndoKind kind) throws CommandSyntaxException {
+    private static int cancel(CommandContext<CommandSourceStack> ctx, UndoKind kind, Identity target) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
         UndoHistoryManager.PendingProposal proposal = UndoHistoryManager.pending();
         if (proposal == null || proposal.kind() != kind) {
             throw Errors.simple(source, "cloneimproved.undo.no_proposal");
+        }
+        if (target != null && !target.uuid().equals(proposal.owner())) {
+            throw Errors.simple(source, "cloneimproved.undo.target_mismatch", target.name());
         }
         UUID actor = selfIdentity(source).uuid();
         if (!actor.equals(proposal.proposer()) && !actor.equals(proposal.owner())) {
@@ -159,12 +171,16 @@ public final class UndoSubCommands {
     /**
      * Refuses undo/redo while a recorded region spans unloaded chunks — reading or writing them
      * would force-load on the server thread. Checked at proposal time and again at confirm time
-     * (chunks can unload in between).
+     * (chunks can unload in between). A region whose dimension no longer exists on this server is
+     * a hard failure too: skipping it would report success while silently restoring nothing there.
      */
     private static void ensureRegionsLoaded(CommandSourceStack source, CloneRecord record) throws CommandSyntaxException {
         for (RegionSnapshot region : record.regions()) {
             net.minecraft.server.level.ServerLevel level = source.getServer().getLevel(region.dimension());
-            if (level != null && !region.isFullyLoaded(level)) {
+            if (level == null) {
+                throw Errors.simple(source, "cloneimproved.undo.dimension_missing", region.describe());
+            }
+            if (!region.isFullyLoaded(level)) {
                 throw Errors.simple(source, "cloneimproved.undo.not_loaded");
             }
         }

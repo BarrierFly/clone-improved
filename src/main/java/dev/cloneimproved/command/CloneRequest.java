@@ -18,7 +18,12 @@ import java.util.List;
  */
 public record CloneRequest(MaskMode mask, FilterRef filter, List<TransformOp> ops, boolean force, boolean strict) {
 
+    /** Normalizes the transform list so the record is immutable on every construction path (and null fails fast here). */
+    public CloneRequest {
+        ops = List.copyOf(ops);
+    }
+
     public static CloneRequest of(MaskMode mask, FilterRef filter, List<TransformOp> ops, boolean force, boolean strict) {
-        return new CloneRequest(mask, filter, List.copyOf(ops), force, strict);
+        return new CloneRequest(mask, filter, ops, force, strict);
     }
 }

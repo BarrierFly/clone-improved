@@ -4,8 +4,9 @@ import java.util.List;
 
 /**
  * An ordered, immutable transform chain. The command grammar only produces valid chains, but the
- * spec still validates its invariants (design doc §3.1: {@code move} at most once required exactly
- * once for transforms, {@code rotate}/{@code mirror} at most once each).
+ * spec still validates its invariants (design doc §3.1: at most one {@code move}/{@code rotate}/
+ * {@code mirror} each; the grammar only combines rotate/mirror with a {@code move}, while an empty
+ * chain is the valid mask-only/no-transform case).
  */
 public final class TransformSpec {
     private static final TransformSpec EMPTY = new TransformSpec(List.of());
@@ -66,13 +67,18 @@ public final class TransformSpec {
 
     /**
      * Pure validation of the mirror-plane rule {@code 2c ∈ ℤ} (coordinates snap to blocks only on
-     * 0.5 steps). Returns the first offending coordinate, or {@link Double#NaN} when all are valid.
+     * 0.5 steps) with {@code 2c} in int range — PlacementMapper casts {@code 2c} to an int anchor,
+     * so non-finite or out-of-range values must be rejected here. Exact comparison: every intended
+     * half-step is exactly representable as a double, so no epsilon is needed.
+     *
+     * <p>Returns the first offending coordinate, or {@link Double#NaN} when all are valid.
      */
     public static double invalidMirrorCoord(List<TransformOp> ops) {
         for (TransformOp op : ops) {
             if (op instanceof TransformOp.Mirror mirror) {
                 double doubled = mirror.coord() * 2;
-                if (Double.isNaN(doubled) || Math.abs(doubled - Math.rint(doubled)) > 1.0E-9) {
+                if (!Double.isFinite(doubled) || Math.abs(doubled) > Integer.MAX_VALUE
+                    || doubled != Math.rint(doubled)) {
                     return mirror.coord();
                 }
             }

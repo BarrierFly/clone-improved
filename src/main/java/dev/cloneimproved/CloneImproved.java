@@ -26,8 +26,11 @@ public final class CloneImproved implements ModInitializer {
         // Fires after vanilla command registration, so our tree merges into the existing one.
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
             CloneCommandExtension.register(dispatcher, registryAccess));
-        // Records are kept until the server stops (design doc §6.1).
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> UndoHistoryManager.onServerStopping());
+        // Undo/redo state is per server run: wipe it on every start and stop so a proposal or
+        // history from a previous run can never leak into a new world (records are per-run by design).
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> UndoHistoryManager.reset());
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> UndoHistoryManager.reset());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> UndoHistoryManager.reset());
         LOGGER.info("clone-improved initialized");
     }
 }

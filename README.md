@@ -32,7 +32,8 @@ transform ::= move | rotate (cw|ccw|reverse) | mirror (x|z) <coordinate>
 - `move` **must** appear exactly once; `rotate` and `mirror` at most once each; they apply in
   the order written. `rotate cw` = 90° clockwise seen from above (north → east), `ccw` =
   counter-clockwise, `reverse` = 180°.
-- `move` and `rotate` pivot around the region's current lower-NW corner; `mirror x 1.0`
+- `move` re-anchors the region's lower-NW corner onto the destination; `rotate` keeps that
+  anchor fixed and rotates the content within it (the X/Z dimensions swap); `mirror x 1.0`
   reflects through the vertical plane `x = 1.0` (world coordinate, `0.5` steps). Vertical
   rotations/mirrors are intentionally not supported.
 - Direction-sensitive blocks (stairs, rails, doors, logs,…) are rotated/mirrored correctly.
@@ -79,15 +80,18 @@ including masked-out air.
 - `/clone undo` proposes undoing your last clone and shows the command, time, regions and
   affected-block count. Finish it with `confirm` or `cancel`.
 - If the region changed since, the proposal warns how many blocks were modified — confirming
-  overwrites them.
+  overwrites them. If the region changed again *after* the proposal (more blocks than warned),
+  confirming refuses and asks you to propose again.
 - `/clone undo <player>` proposes undoing *another* player's last clone; if they are online
   they are told who proposed it. Either the proposer or the owner can `confirm`/`cancel`.
-  The target does not need to be online.
+  The target does not need to be online, and `<player> confirm|cancel` only acts when the
+  pending proposal is about that player.
 - After undoing you can keep undoing older records; `/clone redo` reverses the last undo with
   the same proposal flow. A new `/clone` clears your redo stack.
 - Only one proposal can be pending at a time; records are kept until the server stops.
-- Undo/redo refuses to run while a recorded region spans unloaded chunks (nothing is modified
-  in that case) — move closer to the area, or load it, and try again.
+- Undo/redo refuses to run while a recorded region spans unloaded chunks or lies in a dimension
+  that no longer exists on this server (nothing is modified in either case) — move closer to the
+  area, or load it, and try again.
 - A clone that fails with `clone.failed` but still changed the world (e.g. a `move` whose
   source was already cleared) keeps its undo record, so even that failure can be reverted.
 

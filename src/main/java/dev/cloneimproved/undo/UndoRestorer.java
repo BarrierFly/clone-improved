@@ -1,5 +1,6 @@
 package dev.cloneimproved.undo;
 
+import dev.cloneimproved.CloneImproved;
 import dev.cloneimproved.multiver.MultiversionHelpers;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -26,6 +27,8 @@ public final class UndoRestorer {
         for (RegionSnapshot region : record.regions()) {
             ServerLevel level = server.getLevel(region.dimension());
             if (level == null) {
+                // Unreachable via confirm (ensureRegionsLoaded rejects it first); kept as a guard.
+                CloneImproved.LOGGER.warn("Skipping restore for {}: dimension is not available on this server", region.describe());
                 continue;
             }
             Long2ObjectOpenHashMap<BlockSnapshot> target = kind == UndoKind.UNDO ? region.before() : region.after();

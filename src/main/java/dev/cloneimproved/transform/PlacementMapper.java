@@ -6,8 +6,9 @@ package dev.cloneimproved.transform;
  * <p>A "placement" is described by two state values: the anchor (the region's lower-NW corner,
  * north = −Z) and the dims (sizeX, sizeY, sizeZ). Ops are applied in command order:
  * {@code move} re-anchors the placement onto the command's {@code <destination>},
- * {@code rotate} pivots around the current anchor, {@code mirror} reflects the whole region
- * through the given vertical plane.
+ * {@code rotate} rotates the content about the region centre while the anchor stays fixed
+ * (only the X/Z dims swap), {@code mirror} reflects the whole region through the given
+ * vertical plane.
  *
  * <p>Rotation formulas (local coords {@code dx ∈ [0, sx)}, {@code dz ∈ [0, sz)}):
  * <ul>

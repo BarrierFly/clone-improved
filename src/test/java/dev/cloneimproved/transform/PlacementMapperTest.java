@@ -190,6 +190,20 @@ class PlacementMapperTest {
     }
 
     @Test
+    void mirrorCoordinateMustBeFiniteAndInIntRange() {
+        // 2c is cast to an int anchor downstream, so non-finite and out-of-int-range planes must fail validation.
+        assertEquals(Double.POSITIVE_INFINITY,
+            TransformSpec.invalidMirrorCoord(List.of(new TransformOp.Mirror(true, Double.POSITIVE_INFINITY))));
+        assertEquals(Double.NEGATIVE_INFINITY,
+            TransformSpec.invalidMirrorCoord(List.of(new TransformOp.Mirror(false, Double.NEGATIVE_INFINITY))));
+        assertEquals(1.0E300, TransformSpec.invalidMirrorCoord(List.of(new TransformOp.Mirror(true, 1.0E300))));
+        // 2c = 2^31 - 1 is exactly representable and still in int range.
+        assertEquals(Double.NaN, TransformSpec.invalidMirrorCoord(List.of(new TransformOp.Mirror(true, 1073741823.5))));
+        // 2c = 2^31 no longer fits an int.
+        assertEquals(1073741824.0, TransformSpec.invalidMirrorCoord(List.of(new TransformOp.Mirror(true, 1073741824.0))));
+    }
+
+    @Test
     void moveTwiceIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> TransformSpec.of(List.of(MOVE, MOVE)));
     }

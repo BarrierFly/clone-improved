@@ -3,10 +3,11 @@
 mod.id = "clone-improved"
 mod.name = "Clone Improved"
 mod.group = "dev.cloneimproved"
-mod.version = "0.1.1"
+mod.version = "0.1.2"
 
 deps.fabric_loader = "0.19.5"
-loomx.loom_version = "1.17-SNAPSHOT"
+# Pinned release (was 1.17-SNAPSHOT): a moving snapshot makes builds non-reproducible.
+loomx.loom_version = "1.17.21"
 
 ["1.19.4"]
 mod.mc_compat = "1.19.4"

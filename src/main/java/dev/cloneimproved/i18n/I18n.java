@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.IllegalFormatException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -26,26 +27,39 @@ import java.util.Map;
  */
 public final class I18n {
     private static final String LANG_DIR = "/assets/clone-improved/lang/";
-    private static final Map<String, Map<String, String>> LANGS = new HashMap<>();
+    /**
+     * Built once during {@link #init()} on the mod-init thread, then only read from arbitrary
+     * server threads: published as an immutable map through a volatile field for safe publication.
+     */
+    private static volatile Map<String, Map<String, String>> LANGS = Map.of();
 
     private I18n() {
     }
 
     public static void init() {
-        load("en_us");
-        load("zh_cn");
+        Map<String, Map<String, String>> langs = new HashMap<>();
+        for (String lang : List.of("en_us", "zh_cn")) {
+            Map<String, String> parsed = load(lang);
+            if (parsed != null) {
+                langs.put(lang, Map.copyOf(parsed));
+            }
+        }
+        LANGS = Map.copyOf(langs);
     }
 
-    private static void load(String lang) {
+    /** Returns the parsed table for {@code lang}, or {@code null} when the file is missing/empty/broken. */
+    private static Map<String, String> load(String lang) {
         Type type = new TypeToken<Map<String, String>>() {}.getType();
         try (InputStream in = I18n.class.getResourceAsStream(LANG_DIR + lang + ".json")) {
             if (in == null) {
                 CloneImproved.LOGGER.warn("Missing built-in language file: {}", lang);
-                return;
+                return null;
             }
-            LANGS.put(lang, new Gson().fromJson(new String(in.readAllBytes(), StandardCharsets.UTF_8), type));
+            Map<String, String> parsed = new Gson().fromJson(new String(in.readAllBytes(), StandardCharsets.UTF_8), type);
+            return parsed == null ? null : Map.copyOf(parsed);
         } catch (Exception e) {
-            CloneImproved.LOGGER.warn("Failed to load language {}: {}", lang, e.toString());
+            CloneImproved.LOGGER.warn("Failed to load language {}", lang, e);
+            return null;
         }
     }
 
@@ -93,7 +107,9 @@ public final class I18n {
             return key;
         }
         try {
-            return String.format(template, args);
+            // Locale.ROOT: numeric/date conversions must not follow the server's default locale
+            // (the surrounding text already follows the player's language).
+            return String.format(Locale.ROOT, template, args);
         } catch (IllegalFormatException e) {
             CloneImproved.LOGGER.warn("Bad translation format for {}: {}", key, e.toString());
             return template;

@@ -121,8 +121,7 @@ public final class CloneExecutor {
                     }
                     int[] d = PlacementMapper.mapToDest(spec, srcPlacement, destPos.getX(), destPos.getY(), destPos.getZ(), x, y, z);
                     BlockPos destPos2 = new BlockPos(d[0], d[1], d[2]);
-                    boolean sourceNonAir = !state.isAir();
-                    if (mask.requiresAirAtDestination(sourceNonAir) && !toDim.getBlockState(destPos2).isAir()) {
+                    if (mask.requiresAirAtDestination() && !toDim.getBlockState(destPos2).isAir()) {
                         throw Errors.simple(source, "cloneimproved.mask_end_not_air", formatPos(destPos2));
                     }
                     var blockEntity = fromDim.getBlockEntity(sourcePos);
